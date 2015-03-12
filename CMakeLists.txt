@@ -18,8 +18,8 @@ endif()
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
-#set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
-#file(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+file(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 
 # config file
 
@@ -54,7 +54,7 @@ configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/config/version.h.in
     ${CMAKE_CURRENT_SOURCE_DIR}/include/walker/version.h)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/walker)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_definitions(-std=gnu11)
 

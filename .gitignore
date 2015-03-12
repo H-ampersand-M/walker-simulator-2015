@@ -48,3 +48,6 @@ bytecode/
 *.exe
 *.out
 *.app
+
+# Moving bits
+version.h
