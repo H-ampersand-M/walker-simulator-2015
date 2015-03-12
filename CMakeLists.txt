@@ -65,3 +65,24 @@ endif()
 add_executable(walker-simulator-2015
     ${CMAKE_CURRENT_SOURCE_DIR}/src/walker/main.c
     )
+
+# Install
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/man/man1/walker-simulator-2015.1
+    DESTINATION share/man/man1
+    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
+    )
+
+install(TARGETS walker-simulator-2015
+    DESTINATION bin
+    )
+
+# Uninstall
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY
+    )
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
