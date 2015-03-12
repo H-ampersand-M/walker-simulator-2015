@@ -37,7 +37,7 @@ FLAGS_CC_DEBUG = -g
 FLAGS_CC_WARNINGS = -W -Wall -Wextra -Wfloat-equal -Wswitch-default \
 	-Winit-self -Wshadow -Wbad-function-cast -Wcast-qual -Wcast-align \
 	-Wconversion -Wlogical-op -Wstrict-prototypes -Wnested-externs
-FLAGS_CC_OPTIMIZATIONS = -O0
+FLAGS_CC_OPTIMIZATIONS = -O3 -march=native
 FLAGS_CC_INCLUDE = -I$(PATH_INCLUDE)
 FLAGS_CC_LIB = -L$(PATH_LIB)
 FLAGS_CC_MINIMAL = -std=gnu99 -pedantic $(FLAGS_CC_INCLUDE)
@@ -80,7 +80,7 @@ INSTALL_DATA = $(INSTALL) -m 644
 
 ## Flags
 ARFLAGS = crvs
-CFLAGS = $(FLAGS_CC_DEBUG) $(FLAGS_CC_WARNINGS) $(FLAGS_CC_OPTIMIZATIONS)
+CFLAGS = $(FLAGS_CC_WARNINGS) $(FLAGS_CC_OPTIMIZATIONS)
 LDFLAGS =
 LDLIBS =
 
@@ -112,7 +112,7 @@ MANDIR = $(DATAROOTDIR)/man
 # Ensure these requirements are set even if the flags are empty.
 override CFLAGS += $(FLAGS_CC_MINIMAL)
 override LDLIBS += $(FLAGS_CC_LIB)
-override LDFLAGS += -lfl -ly
+override LDFLAGS += -lrt
 
 ################################################################################
 # Actual building
