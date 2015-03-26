@@ -7,6 +7,8 @@ set(WS2015_VERSION_MAJOR 0)
 set(WS2015_VERSION_MINOR 0)
 set(WS2015_VERSION_PATCH 1)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     # cmake adds -g automatically
     set(DEBUG ON)
