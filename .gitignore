@@ -49,5 +49,8 @@ bytecode/
 *.out
 *.app
 
+# CMake
+build
+
 # Moving bits
 version.h
