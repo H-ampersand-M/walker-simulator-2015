@@ -1,0 +1,110 @@
+#!/bin/bash
+# Stupid ./configure script. Please do not compare this to the autotools.
+
+################################################################################
+## Helper functions.
+################################################################################
+
+## Grep a variable from the CMakeLists.txt.
+## $1: The variable name.
+function grep_cmake_var
+{
+    grep "$1" CMakeLists.txt | awk '{ print $2; }' | tr -d ')'
+}
+
+## Replace a cmake '@' wrapped variable.
+## $1: Variable name.
+## $2: Replacement string.
+## $3: Input/Output file.
+function sed_cmake_var
+{
+    sed -i "s/\@$1\@/$2/" $3
+}
+
+## Replace a variable in a file with its value from the CMakeLists.txt
+## $1: Variable name.
+## $2: Destination file.
+function replace_a_var
+{
+    local VALUE=$(grep_cmake_var $1)
+    sed_cmake_var $1 $VALUE $2
+}
+
+## Replace a curly wrapped variable.
+## $1: Variable name.
+## $2: Replacement string.
+## $3: Input/Output file.
+function replace_curly_var
+{
+    sed -i "s/\${$1}/$2/" $3
+}
+
+## Try to find a library.
+## $1: Library name.
+## $2: Probable file name.
+function basic_locate_lib
+{
+    printf "%-16s\t" "$1:"
+    if locate $2 2>&1 > /dev/null; then
+        echo -e "\x1B[38;5;106m$1 found.\x1B[0m"
+    else
+        echo -e "\x1B[1m\x1B[38;5;214m$1 not found.\x1B[0m"
+   fi
+}
+
+################################################################################
+## Libraries.
+################################################################################
+
+echo -e "\n\x1B[1mLibraries\n=========\n\x1B[0m"
+
+basic_locate_lib libRT librt.so
+
+################################################################################
+## File generation.
+################################################################################
+
+echo -e "\n\x1B[1mFile generation\n===============\n\x1B[0m"
+
+if ! [[ -f build/autogen/include/nsa/version.h ]]; then
+    echo -e "Generating \x1B[1mversion.h\x1B[0m..."
+
+    VERSION_H="build/autogen/include/walker/version.h"
+
+    mkdir -p "build/autogen/include/walker"
+    cp config/version.h.in $VERSION_H
+
+    replace_a_var WS2015_VERSION_MAJOR $VERSION_H
+    replace_a_var WS2015_VERSION_MINOR $VERSION_H
+    replace_a_var WS2015_VERSION_PATCH $VERSION_H
+
+    replace_curly_var USERNAME "$(whoami)" $VERSION_H
+    replace_curly_var HOSTNAME "$(hostname)" $VERSION_H
+    replace_curly_var DATE "$(date)" $VERSION_H
+else
+    echo -e "\x1B[1mversion.h\x1B[0m exists."
+fi
+
+if ! [[ -f build/autogen/Doxyfile ]]; then
+    echo -e "Generating \x1B[1mDoxyfile\x1B[0m..."
+
+    DOXYFILE="build/autogen/Doxyfile"
+
+    mkdir -p build/autogen
+    cp config/Doxyfile.in $DOXYFILE
+
+    replace_a_var WS2015_VERSION_MAJOR $DOXYFILE
+    replace_a_var WS2015_VERSION_MINOR $DOXYFILE
+    replace_a_var WS2015_VERSION_PATCH $DOXYFILE
+
+    sed_cmake_var CMAKE_PROJECT_NAME "Walker Simulator 2015" $DOXYFILE
+    sed_cmake_var DOXYGEN_OUTPUT_DIR "build\/doc" $DOXYFILE
+    sed_cmake_var DOXYGEN_WARNINGS "NO" $DOXYFILE
+    sed_cmake_var DOXYGEN_HAVE_DOT "NO" $DOXYFILE
+    sed_cmake_var DOXYGEN_DOT_EXECUTABLE "dot" $DOXYFILE
+    sed_cmake_var DOXYGEN_INPUT_DIRS "src\/ include\/" $DOXYFILE
+else
+    echo -e "\x1B[1mDoxyfile\x1B[0m exists."
+fi
+
+exit 0
