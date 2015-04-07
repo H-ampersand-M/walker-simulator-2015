@@ -65,7 +65,7 @@ include_directories("${AUTOGEN_OUTPUT_PATH}/include")
 
 ################################## COMPILER ##################################
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -O3 -march=native")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -O3 -march=native")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -Wextra -pedantic -Wfloat-equal -Wswitch-default -Winit-self -Wshadow -Wbad-function-cast -Wcast-align -Wconversion -Wlogical-op -Wstrict-prototypes -Wnested-externs")
