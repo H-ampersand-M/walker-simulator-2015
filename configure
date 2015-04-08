@@ -59,6 +59,7 @@ function basic_locate_lib
 echo -e "\n\x1B[1mLibraries\n=========\n\x1B[0m"
 
 basic_locate_lib libRT librt.so
+basic_locate_lib libreadline libreadline.so
 
 ################################################################################
 ## File generation.

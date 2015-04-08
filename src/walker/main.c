@@ -49,7 +49,9 @@
 #include <float.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <errno.h>
+
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "walker/version.h"
 #include "walker/active.h"
@@ -64,8 +66,9 @@
 #define OPTIONAL_DURATION 5
 
 timer_t timer;
-pid_t spammer = 0;
-pid_t printer = 0;
+pid_t interface = 0;
+
+static char prompt[128];
 
 static bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *))
 {
@@ -122,9 +125,11 @@ static void walker_interface (void)
 {
     for (;;)
     {
+        sprintf (prompt, "%lu >> ", wlk_get_active_way ());
+        char * read_string = readline (prompt);
+
         unsigned int route = 0;
-        errno = 0;
-        int scan = scanf ("%u", & route); scanf ("%*[^\n]%*[\n]");
+        int scan = sscanf (read_string, "%u", & route);
 
         if (scan == 1)
             wlk_send_request (route);
@@ -134,6 +139,7 @@ static void walker_interface (void)
 static void security (void)
 {
     wlk_set_active_way (0);
+    sigqueue (interface, SIGRTMAX, (union sigval) { .sival_int = 0 });
 
     set_one_shot_timer (SECURITY_DURATION);
 
@@ -156,6 +162,7 @@ static void set_next_request (void)
         next = wlk_round_robin ();
 
     wlk_set_active_way (next);
+    sigqueue (interface, SIGRTMAX, (union sigval) { .sival_int = 0 });
 }
 
 static void request_pending (int a, siginfo_t * b, void * c)
@@ -200,22 +207,55 @@ static void sigrtmin_action (int a, siginfo_t * b, void * c)
     return;
 }
 
+static void sigrtmax_action (int a, siginfo_t * b, void * c)
+{
+    (void) a; (void) b; (void) c;
+
+    sprintf (prompt, "%lu >> ", wlk_get_active_way ());
+
+    int saved_point;
+    char * saved_line;
+
+    bool save = (rl_readline_state & RL_STATE_READCMD) > 0;
+
+    if (save)
+    {
+        saved_point = rl_point;
+        saved_line = rl_copy_text (0, rl_end);
+        rl_replace_line ("", 0);
+        rl_redisplay ();
+    }
+
+    rl_set_prompt (prompt);
+
+    if (save)
+    {
+        rl_replace_line (saved_line, 0);
+        rl_point = saved_point;
+    }
+
+    rl_redisplay ();
+
+    if (save)
+        free (saved_line);
+
+    return;
+}
+
+
 static void sigint_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
 
     /* Erase the ^C. */
-    if (printer)
-        fprintf (stderr, "\b\b  \n");
+    fprintf (stderr, "\b\b  \b\b\n");
 
     wlk_close_request_queue ();
     wlk_close_activity_memory ();
 
-    if (printer)
+    if (interface)
     {
-        kill (spammer, SIGINT);
-        kill (printer, SIGINT);
-        wait (NULL);
+        kill (interface, SIGINT);
         wait (NULL);
 
         mq_unlink ("/walker_request_queue");
@@ -243,49 +283,29 @@ int main (int argc, char ** argv)
 
     fprintf_version (stderr, "Walker Simulator 2015");
 
+    memset (prompt, 0, sizeof prompt);
+
     set_sigaction (SIGINT, sigint_action);
+    set_sigaction (SIGRTMAX, sigrtmax_action);
 
     wlk_open_request_queue ();
     wlk_open_activity_memory ();
 
     wlk_set_active_way (0);
 
-    spammer = fork ();
-    if (spammer)
+    interface = fork ();
+    if (interface)
     {
-        printer = fork ();
+        init_timer (TIMER_SIG);
+        wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
+        set_sigaction (NOTIFY_SIG, request_pending);
+        set_sigaction (TIMER_SIG, sigrtmin_action);
 
-        if (printer)
+        for (;;)
         {
-            init_timer (TIMER_SIG);
-            wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
-            set_sigaction (NOTIFY_SIG, request_pending);
-            set_sigaction (TIMER_SIG, sigrtmin_action);
-
-            for (;;)
-            {
-                set_next_request ();
-                way ();
-                security ();
-            }
-        }
-        else
-        {
-            size_t last = wlk_get_active_way ();
-            printf ("\r\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", last);
-            fflush (stdout);
-
-            size_t current;
-            for (;;)
-            {
-                current = wlk_get_active_way ();
-                if (current != last)
-                {
-                    last = current;
-                    printf ("\r\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", last);
-                    fflush (stdout);
-                }
-            }
+            set_next_request ();
+            way ();
+            security ();
         }
     }
     else
