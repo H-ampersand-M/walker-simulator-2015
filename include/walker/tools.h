@@ -43,11 +43,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <sysexits.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
+#include <mqueue.h>
+#include <time.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Debugging formatted printers.
@@ -105,5 +109,41 @@ int sndebug (char * str, size_t size, const char * format, ...);
  * \return The number of printed characters.
  */
 int fperror (FILE * stream, const char * location, const char * function_name);
+
+////////////////////////////////////////////////////////////////////////////////
+// Various utilities.
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief Set a sigaction.
+ * \param signal Signal.
+ * \param action Function to call when the signal is received.
+ * \retval true on success.
+ * \retval false otherwise.
+ */
+bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *));
+
+/**
+ * \brief Make the queue notify the caller with a signal on message reception.
+ * \param queue The notifying queue.
+ * \param signo The signal to send.
+ * \retval true on success.
+ * \retval false otherwise.
+ */
+bool wlk_queue_notify (mqd_t queue, int signo);
+
+/**
+ * \brief Initialize a timer.
+ * \param signal signal.
+ * \param timer timer.
+ */
+void init_timer (int signal, timer_t * timer);
+
+/**
+ * \brief Set a one shot timer.
+ * \param timer timer.
+ * \param seconds duration.
+ */
+void set_one_shot_timer (timer_t timer, time_t seconds);
 
 #endif /* __WALKER_TOOLS_H__ */

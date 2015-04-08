@@ -72,87 +72,124 @@ pid_t interface = 0;
 
 static char prompt[128];
 
-static bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *))
+////////////////////////////////////////////////////////////////////////////////
+// Static utility functions.
+////////////////////////////////////////////////////////////////////////////////
+
+static void walker_interface (void);
+static void security (void);
+static void set_next_request (void);
+static void way (void);
+
+////////////////////////////////////////////////////////////////////////////////
+// Handlers.
+////////////////////////////////////////////////////////////////////////////////
+
+static void request_pending (int a, siginfo_t * b, void * c);
+static void sigrtmin_action (int a, siginfo_t * b, void * c);
+static void sigrtmax_action (int a, siginfo_t * b, void * c);
+static void sigint_action (int a, siginfo_t * b, void * c);
+
+////////////////////////////////////////////////////////////////////////////////
+// Main utilities.
+////////////////////////////////////////////////////////////////////////////////
+
+static void print_end (void);
+static void print_help (void);
+static void parse_args (int argc, char ** argv);
+
+////////////////////////////////////////////////////////////////////////////////
+// Main.
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief Main function.
+ * \param argc Command line argument count.
+ * \param argv Command line arguments.
+ * \retval EXIT_SUCCESS on success.
+ * \retval EX_USAGE on user misbehaviour.
+ */
+int main (int argc, char ** argv)
 {
-    struct sigaction sa;
-    sa.sa_sigaction = action;
-    sa.sa_flags = SA_SIGINFO;
-    sigemptyset (& sa.sa_mask);
+    parse_args (argc, argv);
 
-    int success = sigaction (signal, & sa, NULL);
+    printf ("\x1B[1m\x1B[32mWelcome!\x1B[0m\n");
 
-    if (success == -1)
-        fperror (stderr, "set_sigaction", "sigaction");
+    memset (prompt, 0, sizeof prompt);
 
-    return success != -1;
+    set_sigaction (SIGINT, sigint_action);
+    set_sigaction (SIGRTMAX, sigrtmax_action);
+
+    wlk_open_request_queue ();
+    wlk_open_activity_memory ();
+
+    wlk_set_active_way (0);
+
+    interface = fork ();
+    if (interface)
+    {
+        init_timer (TIMER_SIG, & timer);
+        wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
+        set_sigaction (NOTIFY_SIG, request_pending);
+        set_sigaction (TIMER_SIG, sigrtmin_action);
+
+        for (;;)
+        {
+            set_next_request ();
+            way ();
+            security ();
+        }
+    }
+    else
+    {
+        walker_interface ();
+    }
+
+    exit (EXIT_SUCCESS);
 }
 
-static bool wlk_queue_notify (mqd_t queue, int signo)
-{
-    struct sigevent event;
+////////////////////////////////////////////////////////////////////////////////
+// Static utility functions implementations.
+////////////////////////////////////////////////////////////////////////////////
 
-    event.sigev_notify = SIGEV_SIGNAL;
-    event.sigev_signo = signo;
-    event.sigev_value = (union sigval) { .sival_int = 0, };
-    int success = mq_notify (queue, & event);
-
-    if (success == -1)
-        fperror (stderr, "wlk_queue_notify", "mq_notify");
-
-    return success != -1;
-}
-
-static void init_timer (int signal)
-{
-    struct sigevent event;
-    event.sigev_notify = SIGEV_SIGNAL;
-    event.sigev_signo = signal;
-    event.sigev_value = (union sigval) { .sival_int = 0, };
-
-    timer_create (CLOCK_REALTIME, & event, & timer);
-}
-
-static void set_one_shot_timer (time_t seconds)
-{
-    struct itimerspec timer_spec;
-    timer_spec.it_value.tv_sec = seconds;
-    timer_spec.it_value.tv_nsec = 0;
-    timer_spec.it_interval.tv_sec = 0;
-    timer_spec.it_interval.tv_nsec = 0;
-
-    timer_settime (timer, 0, & timer_spec, NULL);
-}
-
-static void walker_interface (void)
+void walker_interface (void)
 {
     for (;;)
     {
+        /* Set the prompt with the currently active way, if any. */
         sprintf (prompt, "%lu >> ", wlk_get_active_way ());
+
         char * read_string = readline (prompt);
 
         unsigned int route = 0;
         int scan = sscanf (read_string, "%u", & route);
 
+        /* If the input is correct, send the request. */
         if (scan == 1)
             wlk_send_request (route);
+
+        /* Lines returned by readline(3) are allocated with malloc(3) ! */
+        free (read_string);
     }
 }
 
-static void security (void)
+void security (void)
 {
+    /* Switch off all ways and notify the interface. */
     wlk_set_active_way (0);
     sigqueue (interface, SIGRTMAX, (union sigval) { .sival_int = 0 });
 
-    set_one_shot_timer (SECURITY_DURATION);
+    /* Set the timer. */
+    set_one_shot_timer (timer, SECURITY_DURATION);
 
-    /* Wait for the SIGRTMIN signals. */
+    /* Wait for the timer to expire. */
     sigset_t set;
     sigfillset (& set);
     sigdelset (& set, SIGRTMIN);
     sigsuspend (& set);
 }
 
-static void set_next_request (void)
+void set_next_request (void)
 {
     size_t next;
 
@@ -163,24 +200,17 @@ static void set_next_request (void)
     else
         next = wlk_round_robin ();
 
+    /* Set the new active way and notify the interface. */
     wlk_set_active_way (next);
     sigqueue (interface, SIGRTMAX, (union sigval) { .sival_int = 0 });
 }
 
-static void request_pending (int a, siginfo_t * b, void * c)
+void way (void)
 {
-    (void) a; (void) b; (void) c;
+    /* Set the timer for the minimum duration. */
+    set_one_shot_timer (timer, MINIMUM_DURATION);
 
-    set_one_shot_timer (0);
-    wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
-    wlk_pull_requests (wlk_get_active_way ());
-}
-
-static void way (void)
-{
-    set_one_shot_timer (MINIMUM_DURATION);
-
-    /* Wait for the SIGRTMIN signals. */
+    /* Wait for the timer to expire. */
     sigset_t set;
     sigfillset (& set);
     sigdelset (& set, SIGRTMIN);
@@ -188,14 +218,16 @@ static void way (void)
     sigprocmask (SIG_SETMASK, & set, NULL);
     sigsuspend (& set);
 
-    ///////////////////////////////////////////
-
+    /* The timer has expired, this way can, if needed, be closed. */
     sigdelset (& set, NOTIFY_SIG);
 
+    /* Check whether there are requests to pull. */
     wlk_pull_requests (wlk_get_active_way ());
     if (! wlk_request_pending ())
     {
-        set_one_shot_timer (OPTIONAL_DURATION);
+        /* If this way does not need to be closed, set a new timer for the
+         * remaining time and wait for it (or for a request). */
+        set_one_shot_timer (timer, OPTIONAL_DURATION);
         sigsuspend (& set);
     }
 
@@ -203,13 +235,26 @@ static void way (void)
     wlk_reset_request (wlk_get_active_way ());
 }
 
-static void sigrtmin_action (int a, siginfo_t * b, void * c)
+////////////////////////////////////////////////////////////////////////////////
+// Handlers.
+////////////////////////////////////////////////////////////////////////////////
+
+void request_pending (int a, siginfo_t * b, void * c)
+{
+    (void) a; (void) b; (void) c;
+
+    set_one_shot_timer (timer, 0);
+    wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
+    wlk_pull_requests (wlk_get_active_way ());
+}
+
+void sigrtmin_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
     return;
 }
 
-static void sigrtmax_action (int a, siginfo_t * b, void * c)
+void sigrtmax_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
 
@@ -244,25 +289,7 @@ static void sigrtmax_action (int a, siginfo_t * b, void * c)
     return;
 }
 
-
-static void __print_end (void)
-{
-    printf ("%s",
-            "\n    Hasta la vista baby\n\n"
-            "     _.-^^---....,,--\n"
-            " _--                  --_\n"
-            "<                        >)\n"
-            "|                         |\n"
-            " \\._                   _./\n"
-            "    ```--. . , ; .--'''\n"
-            "          | |   |\n"
-            "       .-=||  | |=-.\n"
-            "       `-=#$%&%$#=-'\n"
-            "          | ;  :|\n"
-            " _____.,-#%&$@%#&#~,._____ \n");
-}
-
-static void sigint_action (int a, siginfo_t * b, void * c)
+void sigint_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
 
@@ -279,29 +306,18 @@ static void sigint_action (int a, siginfo_t * b, void * c)
 
         mq_unlink ("/walker_request_queue");
         wlk_unlink_activity_memory ();
-        __print_end();
+        print_end();
     }
 
 
     exit (EXIT_SUCCESS);
 }
 
-static void __print_help (void)
-{
-    fprintf (stderr, "\x1B[1mwalker-simulator-2015\x1B[0m [OPTIONS]\n\n");
-    fprintf (stderr, "\x1B[1mOPTIONS\x1B[0m\n\n");
+////////////////////////////////////////////////////////////////////////////////
+// Main utilities.
+////////////////////////////////////////////////////////////////////////////////
 
-    fprintf (stderr, "\t\x1B[1m-h\x1B[0m, \x1B[1m--help\x1B[0m\n");
-    fprintf (stderr, "\t\tPrint this help.\n");
-
-    fprintf (stderr, "\t\x1B[1m-v\x1B[0m, \x1B[1m--version\x1B[0m\n");
-    fprintf (stderr, "\t\tPrint the version.\n");
-
-    fprintf (stderr, "\n");
-
-    fprintf_version (stderr, "Walker Simulator 2015");
-}
-static void __parse_args (int argc, char ** argv)
+void parse_args (int argc, char ** argv)
 {
     static const struct option walker_options[] =
     {
@@ -327,7 +343,7 @@ static void __parse_args (int argc, char ** argv)
                 exit (EXIT_SUCCESS);
                 break;
             case 'h':
-                __print_help ();
+                print_help ();
                 exit (EXIT_SUCCESS);
                 break;
             case '?':
@@ -344,49 +360,36 @@ static void __parse_args (int argc, char ** argv)
         exit (EX_USAGE);
 }
 
-/**
- * \brief Main function.
- * \param argc Command line argument count.
- * \param argv Command line arguments.
- * \retval EXIT_SUCCESS on success.
- * \retval EX_USAGE on user misbehaviour.
- */
-int main (int argc, char ** argv)
+
+void print_help (void)
 {
-    __parse_args (argc, argv);
+    fprintf (stderr, "\x1B[1mwalker-simulator-2015\x1B[0m [OPTIONS]\n\n");
+    fprintf (stderr, "\x1B[1mOPTIONS\x1B[0m\n\n");
 
-    printf ("\x1B[1m\x1B[32mWelcome!\x1B[0m\n");
+    fprintf (stderr, "\t\x1B[1m-h\x1B[0m, \x1B[1m--help\x1B[0m\n");
+    fprintf (stderr, "\t\tPrint this help.\n");
 
-    memset (prompt, 0, sizeof prompt);
+    fprintf (stderr, "\t\x1B[1m-v\x1B[0m, \x1B[1m--version\x1B[0m\n");
+    fprintf (stderr, "\t\tPrint the version.\n");
 
-    set_sigaction (SIGINT, sigint_action);
-    set_sigaction (SIGRTMAX, sigrtmax_action);
+    fprintf (stderr, "\n");
 
-    wlk_open_request_queue ();
-    wlk_open_activity_memory ();
-
-    wlk_set_active_way (0);
-
-    interface = fork ();
-    if (interface)
-    {
-        init_timer (TIMER_SIG);
-        wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
-        set_sigaction (NOTIFY_SIG, request_pending);
-        set_sigaction (TIMER_SIG, sigrtmin_action);
-
-        for (;;)
-        {
-            set_next_request ();
-            way ();
-            security ();
-        }
-    }
-    else
-    {
-        walker_interface ();
-    }
-
-    exit (EXIT_SUCCESS);
+    fprintf_version (stderr, "Walker Simulator 2015");
 }
 
+void print_end (void)
+{
+    printf ("%s",
+            "\n    Hasta la vista baby\n\n"
+            "     _.-^^---....,,--\n"
+            " _--                  --_\n"
+            "<                        >)\n"
+            "|                         |\n"
+            " \\._                   _./\n"
+            "    ```--. . , ; .--'''\n"
+            "          | |   |\n"
+            "       .-=||  | |=-.\n"
+            "       `-=#$%&%$#=-'\n"
+            "          | ;  :|\n"
+            " _____.,-#%&$@%#&#~,._____ \n");
+}

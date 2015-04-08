@@ -110,3 +110,60 @@ int fperror (FILE * stream, const char * location, const char * function_name)
             function_name, error_string);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Various utilities.
+////////////////////////////////////////////////////////////////////////////////
+
+
+bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *))
+{
+    struct sigaction sa;
+    sa.sa_sigaction = action;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset (& sa.sa_mask);
+
+    int success = sigaction (signal, & sa, NULL);
+
+    if (success == -1)
+        fperror (stderr, "set_sigaction", "sigaction");
+
+    return success != -1;
+}
+
+bool wlk_queue_notify (mqd_t queue, int signo)
+{
+    struct sigevent event;
+
+    event.sigev_notify = SIGEV_SIGNAL;
+    event.sigev_signo = signo;
+    event.sigev_value = (union sigval) { .sival_int = 0, };
+    int success = mq_notify (queue, & event);
+
+    if (success == -1)
+        fperror (stderr, "wlk_queue_notify", "mq_notify");
+
+    return success != -1;
+}
+
+
+void init_timer (int signal, timer_t * timer)
+{
+    struct sigevent event;
+    event.sigev_notify = SIGEV_SIGNAL;
+    event.sigev_signo = signal;
+    event.sigev_value = (union sigval) { .sival_int = 0, };
+
+    timer_create (CLOCK_REALTIME, & event, timer);
+}
+
+void set_one_shot_timer (timer_t timer, time_t seconds)
+{
+    struct itimerspec timer_spec;
+    timer_spec.it_value.tv_sec = seconds;
+    timer_spec.it_value.tv_nsec = 0;
+    timer_spec.it_interval.tv_sec = 0;
+    timer_spec.it_interval.tv_nsec = 0;
+
+    timer_settime (timer, 0, & timer_spec, NULL);
+}
+
