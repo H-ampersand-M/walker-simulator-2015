@@ -53,6 +53,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include <getopt.h>
+
 #include "walker/version.h"
 #include "walker/active.h"
 #include "walker/request.h"
@@ -265,6 +267,64 @@ static void sigint_action (int a, siginfo_t * b, void * c)
     exit (EXIT_SUCCESS);
 }
 
+static void __print_help (void)
+{
+    fprintf (stderr, "\x1B[1mwalker-simulator-2015\x1B[0m [OPTIONS]\n\n");
+    fprintf (stderr, "\x1B[1mOPTIONS\x1B[0m\n\n");
+
+    fprintf (stderr, "\t\x1B[1m-h\x1B[0m, \x1B[1m--help\x1B[0m\n");
+    fprintf (stderr, "\t\tPrint this help.\n");
+
+    fprintf (stderr, "\t\x1B[1m-v\x1B[0m, \x1B[1m--version\x1B[0m\n");
+    fprintf (stderr, "\t\tPrint the version.\n");
+
+    fprintf (stderr, "\n");
+
+    fprintf_version (stderr, "Walker Simulator 2015");
+}
+static void __parse_args (int argc, char ** argv)
+{
+    static const struct option walker_options[] =
+    {
+        { "version",    no_argument, NULL, 'v', },
+        { "help",       no_argument, NULL, 'h', },
+        { 0, 0, 0, 0, },
+    };
+
+    bool unknown_option = false;
+    int val = 1;
+    opterr = 0;
+
+    do
+    {
+        int longindex;
+        val = getopt_long (argc, argv, "vh", walker_options,
+                & longindex);
+
+        switch (val)
+        {
+            case 'v':
+                fprintf_version (stderr, "Walker Simulator 2015");
+                exit (EXIT_SUCCESS);
+                break;
+            case 'h':
+                __print_help ();
+                exit (EXIT_SUCCESS);
+                break;
+            case '?':
+                fprintf (stderr, "\x1B[1m\x1B[31mError: Unknown option \"%s\".\x1B[0m\n",
+                        argv[optind-1]);
+                unknown_option = true;
+            default:
+                break;
+        }
+    }
+    while (val != - 1);
+
+    if (unknown_option)
+        exit (EX_USAGE);
+}
+
 /**
  * \brief Main function.
  * \param argc Command line argument count.
@@ -274,14 +334,9 @@ static void sigint_action (int a, siginfo_t * b, void * c)
  */
 int main (int argc, char ** argv)
 {
-    --argc; argv++;
-    if (argc > 0)
-    {
-        fprintf (stderr, "Error: too many arguments.\n");
-        exit (EX_USAGE);
-    }
+    __parse_args (argc, argv);
 
-    fprintf_version (stderr, "Walker Simulator 2015");
+    printf ("\x1B[1m\x1B[32mWelcome!\x1B[0m\n");
 
     memset (prompt, 0, sizeof prompt);
 
@@ -315,3 +370,4 @@ int main (int argc, char ** argv)
 
     exit (EXIT_SUCCESS);
 }
+
