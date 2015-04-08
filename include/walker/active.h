@@ -80,14 +80,31 @@ bool wlk_unlink_activity_memory (void);
 // Activity status.
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief Get the currently active way, if any.
+ * \return The currently active way.
+ */
 size_t wlk_get_active_way (void);
+
+/**
+ * \brief Set the currently active way, if any.
+ * \param way The currently active way.
+ */
 void wlk_set_active_way (size_t way);
+
+/**
+ * \brief Get the next active way in a round robin fashion.
+ * \return The next active way.
+ */
 size_t wlk_round_robin (void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Input / Output.
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief Debug activity.
+ */
 void wlk_debug_activity (void);
 
 #endif /* __WALKER_ACTIVE_H__ */

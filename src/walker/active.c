@@ -40,16 +40,23 @@
 // Constants
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief The name of the shared memory dedicated to the activity.
+ */
 static const char * ACTIVITY_MEMORY_NAME = "/walker_activity_memory";
+
+/**
+ * \brief The total number of ways.
+ */
+static const size_t WAY_NUMBER = 3;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Static variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-static const size_t WAY_NUMBER = 3;
-size_t last_way = 3;
-static int activity_memory;
-static size_t * active_way = NULL;
+size_t last_way = 3;                    /**< The last active way. */
+static int activity_memory;             /**< Descriptor for the shared memory. */
+static size_t * active_way = NULL;      /**< The location of the shared memory. */
 
 ////////////////////////////////////////////////////////////////////////////////
 // Active way queue initialization.
