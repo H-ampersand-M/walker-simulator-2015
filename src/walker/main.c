@@ -328,9 +328,9 @@ void sigint_action (int a, siginfo_t * b, void * c)
 
         mq_unlink ("/walker_request_queue");
         wlk_unlink_activity_memory ();
-        print_end();
+        if (b->si_pid == interface && pretty)
+            print_end ();
     }
-
 
     exit (EXIT_SUCCESS);
 }
