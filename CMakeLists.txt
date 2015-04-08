@@ -10,8 +10,8 @@ set(WS2015_VERSION_PATCH 1)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-    message(STATUS "Debug mode active")
+    set(CMAKE_BUILD_TYPE Realease)
+    message(STATUS "Release mode active")
 endif()
 
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
@@ -81,6 +81,7 @@ add_executable(walker-simulator-2015
     "${CMAKE_CURRENT_SOURCE_DIR}/src/walker/tools.c"
     )
 target_link_libraries(walker-simulator-2015 "${LibRT_LIBRARIES}")
+target_link_libraries(walker-simulator-2015 "-lreadline")
 
 ################################### DOXYGEN ###################################
 
