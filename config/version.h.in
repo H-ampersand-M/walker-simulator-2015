@@ -56,15 +56,33 @@ static const char username[] = "${USERNAME}";
 static const char hostname[] = "${HOSTNAME}";
 static const char date[] = "${DATE}";
 
+#if defined(__clang__)
+    static const char compiler[] = "clang";
+#elif defined(__GNUC__) || defined(__GNUG__)
+    static const char compiler[] = "gcc";
+#else
+    static const char compiler[] = "some obscure compiler";
+#endif
+
+#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
+    static const char compiler_version[] = __VERSION__;
+#else
+    static const char compiler_version[] = "";
+#endif
+
+
 static inline void fprintf_version (FILE * const stream, const char * const name)
 {
-    fprintf (stream, "%s %u.%u.%u (%s@%s %s)\n",
+    fprintf (stream, "\x1B[1m%s\x1B[0m v%u.%u.%u"
+            " (%s@%s, %s %s, %s)\n",
             name,
             WALKER_VERSION_MAJOR,
             WALKER_VERSION_MINOR,
             WALKER_VERSION_PATCH,
             username,
             hostname,
+            compiler,
+            compiler_version,
             date);
 }
 
