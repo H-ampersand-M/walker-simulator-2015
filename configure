@@ -94,7 +94,7 @@ if ! [[ -f $VERSION_H ]]; then
 
     replace_curly_var USERNAME "$(whoami)" $VERSION_H
     replace_curly_var HOSTNAME "$(hostname)" $VERSION_H
-    replace_curly_var DATE "$(date)" $VERSION_H
+    replace_curly_var DATE "$(date '+%c') (probably)" $VERSION_H
 else
     already_exists "version.h"
 fi
