@@ -363,10 +363,12 @@ void parse_args (int argc, char ** argv)
         switch (val)
         {
             case 'p':
-                pretty = true;
+                if (! compact)
+                    pretty = true;
                 break;
             case 'c':
                 compact = true;
+                pretty = false;
                 break;
             case 'v':
                 fprintf_version (stderr, "Walker Simulator 2015");
@@ -404,6 +406,10 @@ void print_help (void)
 
     fprintf (stderr, "\t\x1B[1m-c\x1B[0m, \x1B[1m--chuck-norris\x1B[0m\n");
     fprintf (stderr, "\t\tChuck Norris does not need detailed information.\n");
+
+    fprintf (stderr, "\t\x1B[1m-p\x1B[0m, \x1B[1m--pretty\x1B[0m\n");
+    fprintf (stderr, "\t\tPrint pretty drawings.\n");
+
 
     fprintf (stderr, "\n");
 
