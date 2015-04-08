@@ -93,7 +93,7 @@ vpath $(PROGRAM_NAME) $(PATH_BIN)
 # Flags, first pass.
 ################################################################################
 
-debug: FLAGS_CC_DEBUG = -g
+debug: FLAGS_CC_DEBUG = -g -DDEBUG
 debug: FLAGS_CC_WARNINGS = -pedantic -W -Wall -Wextra -Wfloat-equal \
 	-Wswitch-default -Winit-self -Wshadow -Wbad-function-cast -Wcast-qual \
 	-Wcast-align -Wconversion -Wlogical-op -Wstrict-prototypes -Wnested-externs
@@ -180,7 +180,7 @@ override LDFLAGS += -lrt
 # Actual building
 ################################################################################
 
-PROGRAM_OBJECTS = main.o active.o request.o
+PROGRAM_OBJECTS = main.o active.o request.o tools.o
 
 all: $(PROGRAM_NAME) | bin_dir
 
@@ -199,8 +199,9 @@ $(PROGRAM_NAME): $(PROGRAM_OBJECTS) | bin_dir
 
 # Rules for object files
 main.o: main.c version.h active.h request.h
-active.o: active.c active.h
+active.o: active.c active.h tools.h
 request.o: request.c request.h
+tools.o: tools.c tools.h
 
 ################################################################################
 # Documentation

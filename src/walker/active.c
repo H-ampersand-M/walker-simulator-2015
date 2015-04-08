@@ -156,7 +156,5 @@ size_t wlk_round_robin (void)
 
 void wlk_debug_activity (void)
 {
-    #ifdef DEBUG
-    fprintf (stderr, "\x1B[37mActive way: %lu\x1B[0m\n\n", * active_way);
-    #endif
+    fdebug (stderr, "\x1B[37mActive way: %lu\x1B[0m\n\n", * active_way);
 }
