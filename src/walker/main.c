@@ -169,6 +169,9 @@ void walker_interface (void)
             read_string = readline ("texas_ranger >> ");
         }
 
+        if (! strcmp ("ragequit", read_string))
+            sigqueue (getppid (), SIGINT, (union sigval) { .sival_int = 0 });
+
         unsigned int route = 0;
         int scan = sscanf (read_string, "%u", & route);
 
