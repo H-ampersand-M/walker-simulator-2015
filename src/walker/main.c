@@ -64,11 +64,12 @@
 #define NOTIFY_SIG SIGRTMAX
 
 #define SECURITY_DURATION 1
-#define MINIMUM_DURATION 7
-#define OPTIONAL_DURATION 23
+#define MINIMUM_DURATION 2
+#define OPTIONAL_DURATION 3
 
 timer_t timer;
 pid_t interface = 0;
+bool compact = false;
 
 static char prompt[128];
 
@@ -113,7 +114,7 @@ int main (int argc, char ** argv)
 {
     parse_args (argc, argv);
 
-    printf ("\x1B[1m\x1B[32mWelcome!\x1B[0m\n");
+    printf ("\x1B[1m\x1B[34mWelcome to Walker Simulator 2015!\x1B[0m\n");
 
     memset (prompt, 0, sizeof prompt);
 
@@ -157,9 +158,16 @@ void walker_interface (void)
     for (;;)
     {
         /* Set the prompt with the currently active way, if any. */
-        sprintf (prompt, "%lu >> ", wlk_get_active_way ());
-
-        char * read_string = readline (prompt);
+        char * read_string = NULL;
+        if (compact)
+        {
+            sprintf (prompt, "%lu >> ", wlk_get_active_way ());
+            read_string = readline (prompt);
+        }
+        else
+        {
+            read_string = readline ("texas_ranger >> ");
+        }
 
         unsigned int route = 0;
         int scan = sscanf (read_string, "%u", & route);
@@ -258,7 +266,8 @@ void sigrtmax_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
 
-    sprintf (prompt, "%lu >> ", wlk_get_active_way ());
+    if (compact)
+        sprintf (prompt, "%lu >> ", wlk_get_active_way ());
 
     int saved_point;
     char * saved_line;
@@ -269,14 +278,21 @@ void sigrtmax_action (int a, siginfo_t * b, void * c)
     {
         saved_point = rl_point;
         saved_line = rl_copy_text (0, rl_end);
+        if (! compact)
+            rl_save_prompt ();
         rl_replace_line ("", 0);
         rl_redisplay ();
     }
 
-    rl_set_prompt (prompt);
+    if (compact)
+        rl_set_prompt (prompt);
+    else
+        wlk_print_ways ();
 
     if (save)
     {
+        if (! compact)
+            rl_restore_prompt ();
         rl_replace_line (saved_line, 0);
         rl_point = saved_point;
     }
@@ -321,6 +337,7 @@ void parse_args (int argc, char ** argv)
 {
     static const struct option walker_options[] =
     {
+        { "chuck-norris",    no_argument, NULL, 'c', },
         { "version",    no_argument, NULL, 'v', },
         { "help",       no_argument, NULL, 'h', },
         { 0, 0, 0, 0, },
@@ -333,11 +350,14 @@ void parse_args (int argc, char ** argv)
     do
     {
         int longindex;
-        val = getopt_long (argc, argv, "vh", walker_options,
+        val = getopt_long (argc, argv, "cvh", walker_options,
                 & longindex);
 
         switch (val)
         {
+            case 'c':
+                compact = true;
+                break;
             case 'v':
                 fprintf_version (stderr, "Walker Simulator 2015");
                 exit (EXIT_SUCCESS);
@@ -371,6 +391,9 @@ void print_help (void)
 
     fprintf (stderr, "\t\x1B[1m-v\x1B[0m, \x1B[1m--version\x1B[0m\n");
     fprintf (stderr, "\t\tPrint the version.\n");
+
+    fprintf (stderr, "\t\x1B[1m-c\x1B[0m, \x1B[1m--chuck-norris\x1B[0m\n");
+    fprintf (stderr, "\t\tChuck Norris does not need detailed information.\n");
 
     fprintf (stderr, "\n");
 

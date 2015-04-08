@@ -109,4 +109,9 @@ size_t wlk_round_robin (void);
  */
 void wlk_debug_activity (void);
 
+/**
+ * \brief Print ways.
+ */
+void wlk_print_ways (void);
+
 #endif /* __WALKER_ACTIVE_H__ */
