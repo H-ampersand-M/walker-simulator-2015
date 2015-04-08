@@ -40,113 +40,89 @@
 // Constants
 ////////////////////////////////////////////////////////////////////////////////
 
-static const long int ACTIVITY_QUEUE_MAX = 8;
-static const char * ACTIVITY_QUEUE_NAME = "/walker_activity_queue";
+/**
+ * \brief The name of the shared memory dedicated to the activity.
+ */
+static const char * ACTIVITY_MEMORY_NAME = "/walker_activity_memory";
+
+/**
+ * \brief The total number of ways.
+ */
+static const size_t WAY_NUMBER = 3;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Static variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-static const size_t WAY_NUMBER = 3;
-size_t active_way = 0;
-size_t last_way = 1;
-static mqd_t activity_queue;
+size_t last_way = 3;                    /**< The last active way. */
+static int activity_memory;             /**< Descriptor for the shared memory. */
+static size_t * active_way = NULL;      /**< The location of the shared memory. */
 
 ////////////////////////////////////////////////////////////////////////////////
 // Active way queue initialization.
 ////////////////////////////////////////////////////////////////////////////////
 
-bool wlk_open_activity_queue (void)
+bool wlk_open_activity_memory (void)
 {
-    struct mq_attr attributes;
+    activity_memory = shm_open (ACTIVITY_MEMORY_NAME,
+            O_RDWR | O_CREAT | O_TRUNC,
+            S_IRUSR | S_IWUSR);
 
-    attributes.mq_flags = 0;
-    attributes.mq_msgsize = sizeof active_way;
-    attributes.mq_maxmsg = ACTIVITY_QUEUE_MAX;
-    attributes.mq_curmsgs = 0;
+    int success = ftruncate (activity_memory, sizeof (size_t));
 
-    mq_unlink (ACTIVITY_QUEUE_NAME);
-    activity_queue = mq_open (ACTIVITY_QUEUE_NAME,
-            O_RDWR | O_CREAT | O_EXCL | O_NONBLOCK,
-            S_IRUSR | S_IWUSR,
-            & attributes);
-    if (activity_queue == (mqd_t) - 1)
+    if (success == -1)
     {
-        perror ("mq_open");
+        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
+        perror ("ftruncate");
+        fprintf (stderr, "\x1B[0m");
+        exit (EX_OSERR);
+    }
+
+    if (activity_memory == -1)
+    {
+        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
+        perror ("shm_open");
+        fprintf (stderr, "\x1B[0m");
+        exit (EX_OSERR);
+    }
+
+    active_way = mmap (NULL, sizeof (size_t), PROT_READ | PROT_WRITE,
+            MAP_SHARED, activity_memory, 0);
+
+    if (active_way == MAP_FAILED)
+    {
+        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
+        perror ("mmap");
+        fprintf (stderr, "\x1B[0m");
         exit (EX_OSERR);
     }
 
     return true;
 }
 
-bool wlk_close_activity_queue (void)
+bool wlk_close_activity_memory (void)
 {
-    int success = mq_close (activity_queue);
+    int success = munmap (active_way, sizeof (size_t));
 
     if (success == -1)
-        perror ("mq_close");
+    {
+        fprintf (stderr, "\x1B[1m\x1B[31mwlk_close_activity_memory (): ");
+        perror ("munmap");
+        fprintf (stderr, "\x1B[0m");
+    }
 
     return success != -1;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Activity exchanges.
-////////////////////////////////////////////////////////////////////////////////
-
-mqd_t wlk_activity_queue (void)
+bool wlk_unlink_activity_memory (void)
 {
-    return activity_queue;
-}
-
-bool wlk_send_activity (void)
-{
-    int success = mq_send (activity_queue, (char *) & active_way,
-            sizeof active_way, 0);
+    int success = shm_unlink (ACTIVITY_MEMORY_NAME);
 
     if (success == -1)
     {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_send_activity (): ");
-        perror ("mq_send");
+        fprintf (stderr, "\x1B[1m\x1B[31mwlk_unlink_activity_memory (): ");
+        perror ("shm_unlink");
         fprintf (stderr, "\x1B[0m");
-    }
-
-    return success != - 1;
-}
-
-bool wlk_receive_activity (void)
-{
-    struct mq_attr attributes;
-    int attr_succ = mq_getattr (activity_queue, & attributes);
-
-    if (attr_succ == - 1)
-    {
-        fprintf (stderr, "\x1B[1m\31mwlk_receive_activity (): ");
-        perror ("mq_getattr");
-        fprintf (stderr, "\x1B[0m");
-
-        return false;
-    }
-
-    #ifdef DEBUG
-    if (attributes.mq_curmsgs > 1)
-        fprintf (stderr, "\x1B[1m\x1B[38;5;214mActivity count: %ld\x1B[0m\n", attributes.mq_curmsgs);
-    #endif
-
-    ssize_t success = -1;;
-    for (long i = 0; i < attributes.mq_curmsgs; i++)
-    {
-        size_t new_way = 0;
-        success = mq_receive (activity_queue, (char *) & new_way,
-                sizeof new_way, 0);
-
-        if (success == -1)
-        {
-            fprintf (stderr, "\x1B[1m\x1B[31mwlk_receive_activity (): ");
-            perror ("mq_receive");
-            fprintf (stderr, "\x1B[0m");
-        }
-        else
-            wlk_set_active_way (new_way);
     }
 
     return success != -1;
@@ -158,12 +134,12 @@ bool wlk_receive_activity (void)
 
 size_t wlk_get_active_way (void)
 {
-    return active_way;
+    return * active_way;
 }
 
 void wlk_set_active_way (size_t way)
 {
-    active_way = way;
+    * active_way = way;
 }
 
 size_t wlk_round_robin (void)
@@ -181,6 +157,6 @@ size_t wlk_round_robin (void)
 void wlk_debug_activity (void)
 {
     #ifdef DEBUG
-    fprintf (stderr, "\x1B[37mActive way: %lu\x1B[0m\n\n", active_way);
+    fprintf (stderr, "\x1B[37mActive way: %lu\x1B[0m\n\n", * active_way);
     #endif
 }

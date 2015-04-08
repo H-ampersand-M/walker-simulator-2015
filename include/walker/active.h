@@ -45,48 +45,66 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sysexits.h>
-#include <mqueue.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Active way queue initialization.
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * \brief Open the message queue for activity.
+ * \brief Open the shared memory for activity.
  * \retval true in case of success.
  * \retval false otherwise.
  */
-bool wlk_open_activity_queue (void);
+bool wlk_open_activity_memory (void);
 
 /**
- * \brief Close the message queue for activity.
+ * \brief Close the shared memory for activity.
  * \retval true in case of success.
  * \retval false otherwise.
  */
-bool wlk_close_activity_queue (void);
+bool wlk_close_activity_memory (void);
 
-////////////////////////////////////////////////////////////////////////////////
-// Activity exchanges.
-////////////////////////////////////////////////////////////////////////////////
-
-mqd_t wlk_activity_queue (void);
-
-bool wlk_send_activity (void);
-
-bool wlk_receive_activity (void);
+/**
+ * \brief Unlink the shared memory for activity.
+ * \retval true in case of success.
+ * \retval false otherwise.
+ */
+bool wlk_unlink_activity_memory (void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Activity status.
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief Get the currently active way, if any.
+ * \return The currently active way.
+ */
 size_t wlk_get_active_way (void);
+
+/**
+ * \brief Set the currently active way, if any.
+ * \param way The currently active way.
+ */
 void wlk_set_active_way (size_t way);
+
+/**
+ * \brief Get the next active way in a round robin fashion.
+ * \return The next active way.
+ */
 size_t wlk_round_robin (void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Input / Output.
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief Debug activity.
+ */
 void wlk_debug_activity (void);
 
 #endif /* __WALKER_ACTIVE_H__ */

@@ -63,7 +63,8 @@
 #define OPTIONAL_DURATION 5
 
 timer_t timer;
-pid_t other;
+pid_t spammer = 0;
+pid_t printer = 0;
 
 static bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *))
 {
@@ -116,20 +117,11 @@ static void set_one_shot_timer (time_t seconds)
     timer_settime (timer, 0, & timer_spec, NULL);
 }
 
-static void activity_change (int a, siginfo_t * b, void * c)
-{
-    (void) a; (void) b; (void) c;
-
-    wlk_queue_notify (wlk_activity_queue (), NOTIFY_SIG);
-    wlk_receive_activity ();
-    wlk_debug_activity ();
-}
-
 static void walker_interface (void)
 {
     for (;;)
     {
-        printf ("\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", wlk_get_active_way ());
+        /* printf ("\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", wlk_get_active_way ()); */
 
         unsigned int route = 0;
         errno = 0;
@@ -150,6 +142,8 @@ static void walker_interface (void)
 
 static void security (void)
 {
+    wlk_set_active_way (0);
+
     set_one_shot_timer (SECURITY_DURATION);
 
     /* Wait for the SIGRTMIN signals. */
@@ -157,9 +151,6 @@ static void security (void)
     sigfillset (& set);
     sigdelset (& set, SIGRTMIN);
     sigsuspend (& set);
-
-    wlk_set_active_way (0);
-    wlk_send_activity ();
 }
 
 static void set_next_request (void)
@@ -174,7 +165,6 @@ static void set_next_request (void)
         next = wlk_round_robin ();
 
     wlk_set_active_way (next);
-    wlk_send_activity ();
 }
 
 static void request_pending (int a, siginfo_t * b, void * c)
@@ -223,20 +213,22 @@ static void sigint_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
 
-    wlk_close_request_queue ();
-    wlk_close_activity_queue ();
+    /* Erase the ^C. */
+    if (printer)
+        fprintf (stderr, "\b\b  \n");
 
-    if (other)
+    wlk_close_request_queue ();
+    wlk_close_activity_memory ();
+
+    if (printer)
     {
-        kill (other, SIGINT);
+        kill (spammer, SIGINT);
+        kill (printer, SIGINT);
+        wait (NULL);
         wait (NULL);
 
         mq_unlink ("/walker_request_queue");
-        mq_unlink ("/walker_activity_queue");
-
-        /* Erase the ^C. */
-        fprintf (stderr, "\b\b  \n");
-        /* fprintf (stderr, "Bye!\n"); */
+        wlk_unlink_activity_memory ();
     }
 
     exit (EXIT_SUCCESS);
@@ -263,27 +255,50 @@ int main (int argc, char ** argv)
     set_sigaction (SIGINT, sigint_action);
 
     wlk_open_request_queue ();
-    wlk_open_activity_queue ();
+    wlk_open_activity_memory ();
 
-    other = fork ();
-    if (other)
+    wlk_set_active_way (0);
+
+    spammer = fork ();
+    if (spammer)
     {
-        init_timer (TIMER_SIG);
-        wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
-        set_sigaction (NOTIFY_SIG, request_pending);
-        set_sigaction (TIMER_SIG, sigrtmin_action);
+        printer = fork ();
 
-        for (;;)
+        if (printer)
         {
-            way ();
-            security ();
-            set_next_request ();
+            init_timer (TIMER_SIG);
+            wlk_queue_notify (wlk_request_queue (), NOTIFY_SIG);
+            set_sigaction (NOTIFY_SIG, request_pending);
+            set_sigaction (TIMER_SIG, sigrtmin_action);
+
+            for (;;)
+            {
+                set_next_request ();
+                way ();
+                security ();
+            }
+        }
+        else
+        {
+            size_t last = wlk_get_active_way ();
+            printf ("\r\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", last);
+            fflush (stdout);
+
+            size_t current;
+            for (;;)
+            {
+                current = wlk_get_active_way ();
+                if (current != last)
+                {
+                    last = current;
+                    printf ("\r\x1B[1m%lu\x1B[0m \x1B[37m>> \x1B[0m", last);
+                    fflush (stdout);
+                }
+            }
         }
     }
     else
     {
-        set_sigaction (NOTIFY_SIG, activity_change);
-        wlk_queue_notify (wlk_activity_queue (), NOTIFY_SIG);
         walker_interface ();
     }
 
