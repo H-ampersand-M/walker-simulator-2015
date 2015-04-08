@@ -67,10 +67,9 @@ basic_locate_lib libreadline
 
 echo -e "\n\x1B[1mFile generation\n===============\n\x1B[0m"
 
-if ! [[ -f build/autogen/include/nsa/version.h ]]; then
+VERSION_H="build/autogen/include/walker/version.h"
+if ! [[ -f $VERSION_H ]]; then
     echo -e "Generating \x1B[1mversion.h\x1B[0m..."
-
-    VERSION_H="build/autogen/include/walker/version.h"
 
     mkdir -p "build/autogen/include/walker"
     cp config/version.h.in $VERSION_H
@@ -86,10 +85,9 @@ else
     echo -e "\x1B[1mversion.h\x1B[0m exists."
 fi
 
-if ! [[ -f build/autogen/Doxyfile ]]; then
+DOXYFILE="build/autogen/Doxyfile"
+if ! [[ -f $DOXYFILE ]]; then
     echo -e "Generating \x1B[1mDoxyfile\x1B[0m..."
-
-    DOXYFILE="build/autogen/Doxyfile"
 
     mkdir -p build/autogen
     cp config/Doxyfile.in $DOXYFILE
