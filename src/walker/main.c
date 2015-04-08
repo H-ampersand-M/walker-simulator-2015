@@ -63,9 +63,9 @@
 #define TIMER_SIG SIGRTMIN
 #define NOTIFY_SIG SIGRTMAX
 
-#define SECURITY_DURATION 3
-#define MINIMUM_DURATION 3
-#define OPTIONAL_DURATION 5
+#define SECURITY_DURATION 1
+#define MINIMUM_DURATION 7
+#define OPTIONAL_DURATION 23
 
 timer_t timer;
 pid_t interface = 0;
