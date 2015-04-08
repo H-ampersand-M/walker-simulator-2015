@@ -246,12 +246,17 @@ install:
 	@$(INSTALL_DATA) -D $(PATH_MAN)/man1/$(PROGRAM_NAME).1 \
 		$(DESTDIR)$(MANDIR)/man1/$(PROGRAM_NAME).1 \
 		&& echo "install: $(DESTDIR)$(MANDIR)/man1/$(PROGRAM_NAME).1"
+	@$(INSTALL_DATA) -D $(PATH_MAN)/man1/walker.1 \
+		$(DESTDIR)$(MANDIR)/man1/walker.1 \
+		&& echo "install: $(DESTDIR)$(MANDIR)/man1/walker.1"
 
 uninstall:
 	@$(RM) $(DESTDIR)$(BINDIR)/$(PROGRAM_NAME) \
 		&& echo "uninstall: $(DESTDIR)$(BINDIR)/$(PROGRAM_NAME)"
 	@$(RM) $(DESTDIR)$(MANDIR)/man1/$(PROGRAM_NAME).1 \
 		&& echo "uninstall: $(DESTDIR)$(MANDIR)/man1/$(PROGRAM_NAME).1"
+	@$(RM) $(DESTDIR)$(MANDIR)/man1/walker.1 \
+		&& echo "uninstall: $(DESTDIR)$(MANDIR)/man1/walker.1"
 
 ################################################################################
 # Cleaning
