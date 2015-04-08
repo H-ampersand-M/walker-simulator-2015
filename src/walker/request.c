@@ -154,7 +154,8 @@ bool wlk_pull_requests (size_t ignore)
         }
 
         size_t place = request.value;
-        if (place != ignore && ! requests[place].value)
+        if (place > 0 && place <= WAY_NUMBER
+                && place != ignore && ! requests[place].value)
         {
             requests[place].date = request.date;
             requests[place].value = 1;
