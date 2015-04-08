@@ -92,4 +92,21 @@ int sndebug (char * str, size_t size, const char * format, ...)
     #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Error printing.
+////////////////////////////////////////////////////////////////////////////////
+
+int fperror (FILE * stream, const char * location, const char * function_name)
+{
+    char buffer[256];
+
+    /* Warning: There are two versions strerror_r() ! We are using the GNU
+     * version (we defined _GNU_SOURCE in the tools.h header).
+     */
+    char * error_string = strerror_r (errno, buffer, 256);
+
+    /* Print... in RED ! */
+    return fprintf (stream, "\x1B[1m\x1B[31m%s: %s: %s\n\x1B[0m", location,
+            function_name, error_string);
+}
 

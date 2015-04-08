@@ -198,9 +198,9 @@ $(PROGRAM_NAME): $(PROGRAM_OBJECTS) | bin_dir
 	@$(CC) $(CFLAGS) -o $(PATH_OBJ)/$@ -c $<
 
 # Rules for object files
-main.o: main.c version.h active.h request.h
+main.o: main.c version.h active.h request.h tools.h
 active.o: active.c active.h tools.h
-request.o: request.c request.h
+request.o: request.c request.h tools.h
 tools.o: tools.c tools.h
 
 ################################################################################

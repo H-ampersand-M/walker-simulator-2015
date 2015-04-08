@@ -37,11 +37,17 @@
 #ifndef __WALKER_TOOLS_H__
 #define __WALKER_TOOLS_H__
 
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sysexits.h>
 #include <stdarg.h>
+#include <string.h>
+#include <errno.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Debugging formatted printers.
@@ -86,5 +92,18 @@ int sdebug (char * str, const char * format, ...);
  * \see sprintf(3)
  */
 int sndebug (char * str, size_t size, const char * format, ...);
+
+////////////////////////////////////////////////////////////////////////////////
+// Error printing.
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief Print an error message in red.
+ * \param stream Destination stream.
+ * \param location The function where the error occurred.
+ * \param function_name The function that produced the error.
+ * \return The number of printed characters.
+ */
+int fperror (FILE * stream, const char * location, const char * function_name);
 
 #endif /* __WALKER_TOOLS_H__ */

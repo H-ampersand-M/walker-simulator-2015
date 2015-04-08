@@ -54,6 +54,7 @@
 #include "walker/version.h"
 #include "walker/active.h"
 #include "walker/request.h"
+#include "walker/tools.h"
 
 #define TIMER_SIG SIGRTMIN
 #define NOTIFY_SIG SIGRTMAX
@@ -76,7 +77,7 @@ static bool set_sigaction (int signal, void (* action) (int, siginfo_t *, void *
     int success = sigaction (signal, & sa, NULL);
 
     if (success == -1)
-        perror ("sigaction");
+        fperror (stderr, "set_sigaction", "sigaction");
 
     return success != -1;
 }
@@ -91,7 +92,7 @@ static bool wlk_queue_notify (mqd_t queue, int signo)
     int success = mq_notify (queue, & event);
 
     if (success == -1)
-        perror ("mq_notify");
+        fperror (stderr, "wlk_queue_notify", "mq_notify");
 
     return success != -1;
 }

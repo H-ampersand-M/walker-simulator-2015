@@ -68,21 +68,17 @@ bool wlk_open_activity_memory (void)
             O_RDWR | O_CREAT | O_TRUNC,
             S_IRUSR | S_IWUSR);
 
+    if (activity_memory == -1)
+    {
+        fperror (stderr, "wlk_open_activity_memory", "shm_open");
+        exit (EX_OSERR);
+    }
+
     int success = ftruncate (activity_memory, sizeof (size_t));
 
     if (success == -1)
     {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
-        perror ("ftruncate");
-        fprintf (stderr, "\x1B[0m");
-        exit (EX_OSERR);
-    }
-
-    if (activity_memory == -1)
-    {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
-        perror ("shm_open");
-        fprintf (stderr, "\x1B[0m");
+        fperror (stderr, "wlk_open_activity_memory", "ftruncate");
         exit (EX_OSERR);
     }
 
@@ -91,9 +87,7 @@ bool wlk_open_activity_memory (void)
 
     if (active_way == MAP_FAILED)
     {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_open_activity_memory (): ");
-        perror ("mmap");
-        fprintf (stderr, "\x1B[0m");
+        fperror (stderr, "wlk_open_activity_memory", "mmap");
         exit (EX_OSERR);
     }
 
@@ -105,11 +99,7 @@ bool wlk_close_activity_memory (void)
     int success = munmap (active_way, sizeof (size_t));
 
     if (success == -1)
-    {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_close_activity_memory (): ");
-        perror ("munmap");
-        fprintf (stderr, "\x1B[0m");
-    }
+        fperror (stderr, "wlk_close_activity_memory", "munmap");
 
     return success != -1;
 }
@@ -119,11 +109,7 @@ bool wlk_unlink_activity_memory (void)
     int success = shm_unlink (ACTIVITY_MEMORY_NAME);
 
     if (success == -1)
-    {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_unlink_activity_memory (): ");
-        perror ("shm_unlink");
-        fprintf (stderr, "\x1B[0m");
-    }
+        fperror (stderr, "wlk_unlink_activity_memory", "shm_unlink");
 
     return success != -1;
 }
