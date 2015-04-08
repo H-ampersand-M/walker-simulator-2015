@@ -78,6 +78,7 @@ add_executable(walker-simulator-2015
     "${CMAKE_CURRENT_SOURCE_DIR}/src/walker/main.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/walker/request.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/walker/active.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/walker/tools.c"
     )
 target_link_libraries(walker-simulator-2015 "${LibRT_LIBRARIES}")
 

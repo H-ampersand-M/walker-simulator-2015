@@ -123,9 +123,7 @@ bool wlk_send_request (size_t i)
 
     if (success == -1)
     {
-        fprintf (stderr, "\x1B[1m\x1B[31mwlk_send_request (%lu): ", i);
-        perror ("mq_send");
-        fprintf (stderr, "\x1B[0m");
+        fperror (stderr, "wlk_send_request", "mq_send");
     }
 
     return success != - 1;
@@ -140,7 +138,7 @@ bool wlk_pull_requests (size_t ignore)
     int get_attr_success = mq_getattr (request_queue, & attributes);
     if (get_attr_success == -1)
     {
-        perror ("mq_getattr");
+        fperror (stderr, "wlk_pull_requests", "mq_getattr");
         return false;
     }
 
@@ -150,9 +148,7 @@ bool wlk_pull_requests (size_t ignore)
         ssize_t success = mq_receive (request_queue, (char *) & request, sizeof request, NULL);
         if (success == -1)
         {
-            fprintf (stderr, "\x1B[1m\x1B[31mwlk_pull_requests (%lu): ", ignore);
-            perror ("mq_receive");
-            fprintf (stderr, "\x1B[0m");
+            fperror (stderr, "wlk_pull_requests", "mq_receive");
             continue;
         }
 
