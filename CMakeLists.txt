@@ -7,8 +7,6 @@ set(WS2015_VERSION_MAJOR 0)
 set(WS2015_VERSION_MINOR 9)
 set(WS2015_VERSION_PATCH 0)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Realease)
     message(STATUS "Release mode active")
