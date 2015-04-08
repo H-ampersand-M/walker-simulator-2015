@@ -177,7 +177,7 @@ bool wlk_request_pending (ssize_t ignore)
 {
     bool pending = false;
 
-    for (size_t i = 0; ! pending && i < WAY_NUMBER; ++i)
+    for (ssize_t i = 0; ! pending && i < WAY_NUMBER; ++i)
         if (i != ignore)
             pending = requests[i].value;
 

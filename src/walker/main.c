@@ -237,7 +237,7 @@ void way (void)
     /* Check whether there are requests to pull. */
     size_t active = wlk_get_active_way ();
     wlk_pull_requests (active);
-    if (! wlk_request_pending (active - 1))
+    if (! wlk_request_pending ((ssize_t) active - 1))
     {
         /* If this way does not need to be closed, set a new timer for the
          * remaining time and wait for it (or for a request). */
