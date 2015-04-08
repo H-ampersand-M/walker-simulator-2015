@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(walker-simulator-2015)
 set(WS2015_VERSION_MAJOR 0)
-set(WS2015_VERSION_MINOR 0)
-set(WS2015_VERSION_PATCH 1)
+set(WS2015_VERSION_MINOR 9)
+set(WS2015_VERSION_PATCH 0)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
 
