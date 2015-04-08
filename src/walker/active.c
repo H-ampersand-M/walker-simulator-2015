@@ -145,25 +145,64 @@ void wlk_debug_activity (void)
     fdebug (stderr, "\x1B[37mActive way: %lu\x1B[0m\n\n", * active_way);
 }
 
-void wlk_print_ways (void)
+void wlk_print_ways (bool pretty)
 {
     size_t active = wlk_get_active_way ();
 
-    switch (active)
-    {
-        case 0:
-            printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\tNorth-South\tWest-East\x1B[0m\n");
-            break;
-        case 1:
-            printf ("\x1B[37mStatus:\t\x1B[1m\x1B[32mPedestrians\x1B[0m\t\x1B[31mNorth-South\tWest-East\x1B[0m\n");
-            break;
-        case 2:
-            printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\t\x1B[1m\x1B[32mNorth-South\x1B[0m\t\x1B[31mWest-East\x1B[0m\n");
-            break;
-        case 3:
-            printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\tNorth-South\t\x1B[1m\x1B[32mWest-East\x1B[0m\n");
-            break;
-        default:
-            break;
-    }
+    if (! pretty)
+        switch (active)
+        {
+            case 0:
+                printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\tNorth-South\tWest-East\x1B[0m\n");
+                break;
+            case 1:
+                printf ("\x1B[37mStatus:\t\x1B[1m\x1B[32mPedestrians\x1B[0m\t\x1B[31mNorth-South\tWest-East\x1B[0m\n");
+                break;
+            case 2:
+                printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\t\x1B[1m\x1B[32mNorth-South\x1B[0m\t\x1B[31mWest-East\x1B[0m\n");
+                break;
+            case 3:
+                printf ("\x1B[37mStatus:\t\x1B[31mPedestrians\tNorth-South\t\x1B[1m\x1B[32mWest-East\x1B[0m\n");
+                break;
+            default:
+                break;
+        }
+    else
+        switch (active)
+        {
+            case 0:
+                printf ("\x1B[37m\t┏━┓\t\t┏━┓\t\t┏━┓\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┗━┛\t\t┗━┛\t\t┗━┛\n\x1B[0m"
+                        "\x1B[37m\tPedestrians\tNorth-South\tWest-East\x1B[0m\n"
+                );
+                break;
+            case 1:
+                printf ("\x1B[37m\t┏━┓\t\t┏━┓\t\t┏━┓\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[32m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┗━┛\t\t┗━┛\t\t┗━┛\n\x1B[0m"
+                        "\x1B[37m\tPedestrians\tNorth-South\tWest-East\x1B[0m\n"
+                );
+                break;
+            case 2:
+                printf ("\x1B[37m\t┏━┓\t\t┏━┓\t\t┏━┓\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[32m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┗━┛\t\t┗━┛\t\t┗━┛\n\x1B[0m"
+                        "\x1B[37m\tPedestrians\tNorth-South\tWest-East\x1B[0m\n"
+                );
+                break;
+            case 3:
+                printf ("\x1B[37m\t┏━┓\t\t┏━┓\t\t┏━┓\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\t\t┃\x1B[32m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[31m⬤\x1B[37m┃\t\t┃\x1B[37m⬤\x1B[37m┃\n\x1B[0m"
+                        "\x1B[37m\t┗━┛\t\t┗━┛\t\t┗━┛\n\x1B[0m"
+                        "\x1B[37m\tPedestrians\tNorth-South\tWest-East\x1B[0m\n"
+                );
+                break;
+            default:
+                break;
+        }
 }

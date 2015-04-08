@@ -112,6 +112,6 @@ void wlk_debug_activity (void);
 /**
  * \brief Print ways.
  */
-void wlk_print_ways (void);
+void wlk_print_ways (bool pretty);
 
 #endif /* __WALKER_ACTIVE_H__ */
