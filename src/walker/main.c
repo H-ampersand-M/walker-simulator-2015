@@ -248,7 +248,7 @@ static void sigint_action (int a, siginfo_t * b, void * c)
     (void) a; (void) b; (void) c;
 
     /* Erase the ^C. */
-    fprintf (stderr, "\b\b  \b\b\n");
+    fprintf (stderr, "\b\b  \n");
 
     wlk_close_request_queue ();
     wlk_close_activity_memory ();
