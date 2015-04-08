@@ -208,7 +208,7 @@ void set_next_request (void)
     wlk_debug_requests ();
 
     if (wlk_request_pending ())
-        next = wlk_pop_request ();
+        next = wlk_select_request ();
     else
         next = wlk_round_robin ();
 

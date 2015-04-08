@@ -184,7 +184,7 @@ bool wlk_request_pending (void)
     return pending;
 }
 
-size_t wlk_pop_request (void)
+size_t wlk_select_request (void)
 {
 #define timespec_to_double(t) (double) (t).tv_sec * 1e9 + (double) (t).tv_nsec
 

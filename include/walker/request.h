@@ -108,12 +108,12 @@ mqd_t wlk_request_queue (void);
 bool wlk_request_pending (void);
 
 /**
- * \brief Pop a request.
+ * \brief Select a request.
  * \return The requested way.
  *
  * If more than one request are pending, the most urgent will be selected.
  */
-size_t wlk_pop_request (void);
+size_t wlk_select_request (void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Modification.
