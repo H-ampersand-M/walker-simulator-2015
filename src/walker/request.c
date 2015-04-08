@@ -58,6 +58,7 @@ typedef struct wlk_request
 ////////////////////////////////////////////////////////////////////////////////
 
 #define WAY_NUMBER 3
+#define PRIORITY_LIMIT 12e9
 static const long int REQUEST_QUEUE_MAX = 8;
 static const char * REQUEST_QUEUE_NAME = "/walker_request_queue";
 
@@ -207,6 +208,10 @@ size_t wlk_pop_request (void)
             }
         }
     }
+
+    if(selected != 0 && requests[0].value)
+        if( (now_date - timespec_to_double (requests[selected].date) ) < PRIORITY_LIMIT)
+            return 1;
 
     return selected + 1;
 #undef timespec_to_double
