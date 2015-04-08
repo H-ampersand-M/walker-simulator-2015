@@ -245,20 +245,21 @@ static void sigrtmax_action (int a, siginfo_t * b, void * c)
 }
 
 
-static void __print_end(void){
-    printf("\n    Hasta la vista baby\n\n"
+static void __print_end (void)
+{
+    printf ("%s",
+            "\n    Hasta la vista baby\n\n"
             "     _.-^^---....,,--\n"
             " _--                  --_\n"
             "<                        >)\n"
             "|                         |\n"
-            " \._                   _./\n"
+            " \\._                   _./\n"
             "    ```--. . , ; .--'''\n"
             "          | |   |\n"
             "       .-=||  | |=-.\n"
             "       `-=#$%&%$#=-'\n"
             "          | ;  :|\n"
-            " _____.,-#%&$@%#&#~,._____ \n"
-          );
+            " _____.,-#%&$@%#&#~,._____ \n");
 }
 
 static void sigint_action (int a, siginfo_t * b, void * c)
