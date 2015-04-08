@@ -174,7 +174,7 @@ MANDIR = $(DATAROOTDIR)/man
 # Ensure these requirements are set even if the flags are empty.
 override CFLAGS += $(FLAGS_CC_MINIMAL)
 override LDLIBS += $(FLAGS_CC_LIB)
-override LDFLAGS += -lrt
+override LDFLAGS += -lrt -lreadline
 
 ################################################################################
 # Actual building
