@@ -207,7 +207,8 @@ void set_next_request (void)
 
     wlk_debug_requests ();
 
-    if (wlk_request_pending ())
+    /* When we arrive here, no way is active. */
+    if (wlk_request_pending (-1))
         next = wlk_select_request ();
     else
         next = wlk_round_robin ();
@@ -234,8 +235,9 @@ void way (void)
     sigdelset (& set, NOTIFY_SIG);
 
     /* Check whether there are requests to pull. */
-    wlk_pull_requests (wlk_get_active_way ());
-    if (! wlk_request_pending ())
+    size_t active = wlk_get_active_way ();
+    wlk_pull_requests (active);
+    if (! wlk_request_pending (active - 1))
     {
         /* If this way does not need to be closed, set a new timer for the
          * remaining time and wait for it (or for a request). */

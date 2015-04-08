@@ -102,10 +102,11 @@ mqd_t wlk_request_queue (void);
 
 /**
  * \brief Determine whether there are pending requests.
+ * \param ignore The way id to ignore.
  * \retval true if there are pending requests.
  * \retval false otherwise.
  */
-bool wlk_request_pending (void);
+bool wlk_request_pending (ssize_t ignore);
 
 /**
  * \brief Select a request.

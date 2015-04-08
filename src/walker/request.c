@@ -154,8 +154,7 @@ bool wlk_pull_requests (size_t ignore)
         }
 
         size_t place = request.value;
-        if (place > 0 && place <= WAY_NUMBER
-                && place != ignore && ! requests[place].value)
+        if (place <= WAY_NUMBER && place != ignore && ! requests[place].value)
         {
             requests[place].date = request.date;
             requests[place].value = 1;
@@ -174,12 +173,13 @@ mqd_t wlk_request_queue (void)
     return request_queue;
 }
 
-bool wlk_request_pending (void)
+bool wlk_request_pending (ssize_t ignore)
 {
     bool pending = false;
 
     for (size_t i = 0; ! pending && i < WAY_NUMBER; ++i)
-        pending = requests[i].value;
+        if (i != ignore)
+            pending = requests[i].value;
 
     return pending;
 }
@@ -210,9 +210,9 @@ size_t wlk_select_request (void)
         }
     }
 
-    if(selected != 0 && requests[0].value)
-        if( (now_date - timespec_to_double (requests[selected].date) ) < PRIORITY_LIMIT)
-            return 1;
+    if (selected != 0 && requests[0].value
+            && (now_date - timespec_to_double (requests[selected].date)) < PRIORITY_LIMIT)
+        selected = 0;
 
     return selected + 1;
 #undef timespec_to_double
