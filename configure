@@ -52,6 +52,20 @@ function basic_locate_lib
    fi
 }
 
+## Print that a file is being generated.
+## $1: Target file.
+function generating
+{
+    echo -e "Generating \x1B[1m$1\x1B[0m..."
+}
+
+## Print that a file already exists.
+## $1: Target file.
+function already_exists
+{
+    echo -e "\x1B[1m$1\x1B[0m exists."
+}
+
 ################################################################################
 ## Libraries.
 ################################################################################
@@ -69,7 +83,7 @@ echo -e "\n\x1B[1mFile generation\n===============\n\x1B[0m"
 
 VERSION_H="build/autogen/include/walker/version.h"
 if ! [[ -f $VERSION_H ]]; then
-    echo -e "Generating \x1B[1mversion.h\x1B[0m..."
+    generating "version.h"
 
     mkdir -p "build/autogen/include/walker"
     cp config/version.h.in $VERSION_H
@@ -82,12 +96,12 @@ if ! [[ -f $VERSION_H ]]; then
     replace_curly_var HOSTNAME "$(hostname)" $VERSION_H
     replace_curly_var DATE "$(date)" $VERSION_H
 else
-    echo -e "\x1B[1mversion.h\x1B[0m exists."
+    already_exists "version.h"
 fi
 
 DOXYFILE="build/autogen/Doxyfile"
 if ! [[ -f $DOXYFILE ]]; then
-    echo -e "Generating \x1B[1mDoxyfile\x1B[0m..."
+    generating "Doxyfile"
 
     mkdir -p build/autogen
     cp config/Doxyfile.in $DOXYFILE
@@ -103,7 +117,7 @@ if ! [[ -f $DOXYFILE ]]; then
     sed_cmake_var DOXYGEN_DOT_EXECUTABLE "dot" $DOXYFILE
     sed_cmake_var DOXYGEN_INPUT_DIRS "src\/ include\/" $DOXYFILE
 else
-    echo -e "\x1B[1mDoxyfile\x1B[0m exists."
+    already_exists "Doxyfile"
 fi
 
 exit 0
