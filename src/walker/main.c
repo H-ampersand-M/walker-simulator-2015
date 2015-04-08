@@ -70,6 +70,7 @@
 timer_t timer;
 pid_t interface = 0;
 bool compact = false;
+bool pretty = false;
 
 static char prompt[128];
 
@@ -290,7 +291,7 @@ void sigrtmax_action (int a, siginfo_t * b, void * c)
     if (compact)
         rl_set_prompt (prompt);
     else
-        wlk_print_ways ();
+        wlk_print_ways (pretty);
 
     if (save)
     {
@@ -340,6 +341,7 @@ void parse_args (int argc, char ** argv)
 {
     static const struct option walker_options[] =
     {
+        { "pretty",    no_argument, NULL, 'p', },
         { "chuck-norris",    no_argument, NULL, 'c', },
         { "version",    no_argument, NULL, 'v', },
         { "help",       no_argument, NULL, 'h', },
@@ -353,11 +355,14 @@ void parse_args (int argc, char ** argv)
     do
     {
         int longindex;
-        val = getopt_long (argc, argv, "cvh", walker_options,
+        val = getopt_long (argc, argv, "pcvh", walker_options,
                 & longindex);
 
         switch (val)
         {
+            case 'p':
+                pretty = true;
+                break;
             case 'c':
                 compact = true;
                 break;
