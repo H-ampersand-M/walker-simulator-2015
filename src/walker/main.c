@@ -245,6 +245,22 @@ static void sigrtmax_action (int a, siginfo_t * b, void * c)
 }
 
 
+static void __print_end(void){
+    printf("\n    Hasta la vista baby\n\n"
+            "     _.-^^---....,,--\n"
+            " _--                  --_\n"
+            "<                        >)\n"
+            "|                         |\n"
+            " \._                   _./\n"
+            "    ```--. . , ; .--'''\n"
+            "          | |   |\n"
+            "       .-=||  | |=-.\n"
+            "       `-=#$%&%$#=-'\n"
+            "          | ;  :|\n"
+            " _____.,-#%&$@%#&#~,._____ \n"
+          );
+}
+
 static void sigint_action (int a, siginfo_t * b, void * c)
 {
     (void) a; (void) b; (void) c;
@@ -262,7 +278,9 @@ static void sigint_action (int a, siginfo_t * b, void * c)
 
         mq_unlink ("/walker_request_queue");
         wlk_unlink_activity_memory ();
+        __print_end();
     }
+
 
     exit (EXIT_SUCCESS);
 }
