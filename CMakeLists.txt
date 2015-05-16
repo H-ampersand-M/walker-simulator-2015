@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 ################################## PROJECT ##################################
 
 project(walker-simulator-2015)
-set(WS2015_VERSION_MAJOR 0)
-set(WS2015_VERSION_MINOR 11)
-set(WS2015_VERSION_PATCH 2)
+set(WS2015_VERSION_MAJOR 1)
+set(WS2015_VERSION_MINOR 0)
+set(WS2015_VERSION_PATCH 0)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Realease)
